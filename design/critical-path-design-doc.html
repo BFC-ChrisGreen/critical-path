@@ -1,0 +1,667 @@
+<title>Critical Path: Game Design Doc</title>
+<style>
+  :root {
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --surface-2: #e4e8ee;
+    --border: #d7dce3;
+    --text: #1a1e27;
+    --text-dim: #5b6472;
+    --text-faint: #838c9b;
+    --accent: #b5721f;
+    --accent-soft: #f0e2ca;
+    --good: #2f8f66;
+    --good-soft: #e2f2ea;
+    --risk: #b8412f;
+    --risk-soft: #fbe7e2;
+    --warn: #a5831f;
+    --warn-soft: #f6edd6;
+
+    --font-display: Charter, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151c;
+      --surface: #1b202b;
+      --surface-2: #222836;
+      --border: #2b3242;
+      --text: #e8eaf0;
+      --text-dim: #9aa3b5;
+      --text-faint: #6b7385;
+      --accent: #e8a33d;
+      --accent-soft: #3a2e17;
+      --good: #4fb286;
+      --good-soft: #16261f;
+      --risk: #e17462;
+      --risk-soft: #2c1a17;
+      --warn: #e0bd4e;
+      --warn-soft: #2b2413;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151c;
+    --surface: #1b202b;
+    --surface-2: #222836;
+    --border: #2b3242;
+    --text: #e8eaf0;
+    --text-dim: #9aa3b5;
+    --text-faint: #6b7385;
+    --accent: #e8a33d;
+    --accent-soft: #3a2e17;
+    --good: #4fb286;
+    --good-soft: #16261f;
+    --risk: #e17462;
+    --risk-soft: #2c1a17;
+    --warn: #e0bd4e;
+    --warn-soft: #2b2413;
+  }
+  :root[data-theme="light"] {
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --surface-2: #e4e8ee;
+    --border: #d7dce3;
+    --text: #1a1e27;
+    --text-dim: #5b6472;
+    --text-faint: #838c9b;
+    --accent: #b5721f;
+    --accent-soft: #f0e2ca;
+    --good: #2f8f66;
+    --good-soft: #e2f2ea;
+    --risk: #b8412f;
+    --risk-soft: #fbe7e2;
+    --warn: #a5831f;
+    --warn-soft: #f6edd6;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+  }
+
+  /* ---------- Header ---------- */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2.5rem;
+    margin-bottom: 3rem;
+  }
+  h1.title {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 6vw, 3.4rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0.6rem 0 0.4rem;
+    text-wrap: balance;
+  }
+  .subtitle {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    margin: 0 0 1.6rem;
+  }
+  .premise {
+    font-size: 1.08rem;
+    color: var(--text);
+    max-width: 62ch;
+  }
+  .premise strong { color: var(--accent); font-weight: 600; }
+
+  /* ---------- Section scaffolding ---------- */
+  section { margin: 3.6rem 0; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+  }
+  .section-head .eyebrow { white-space: nowrap; }
+  .section-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 1.6rem 0 0.6rem;
+  }
+  p { max-width: 66ch; color: var(--text); }
+  p.dim { color: var(--text-dim); }
+  ul.clean { padding-left: 1.2rem; max-width: 64ch; }
+  ul.clean li { margin-bottom: 0.4rem; }
+
+  /* ---------- Preview frame wrapper (marks mockups as illustrative) ---------- */
+  .preview {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 1.2rem 1.3rem 1.4rem;
+    margin: 1.4rem 0;
+  }
+  .preview-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .preview-label::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-faint);
+  }
+
+  /* ---------- Core loop steps ---------- */
+  .loop {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .loop-step {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: var(--surface);
+  }
+  .loop-step + .loop-step { border-top: 1px solid var(--border); }
+  .loop-num {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .loop-step h4 {
+    margin: 0 0 0.25rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .loop-step p { margin: 0; font-size: 0.94rem; color: var(--text-dim); max-width: 56ch; }
+
+  /* ---------- Stat tiles (EVM dashboard) ---------- */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 0.7rem;
+  }
+  .stat-tile {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 0.8rem;
+  }
+  .stat-tile .label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+  .stat-tile .value {
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    margin-top: 0.15rem;
+  }
+  .stat-tile .value.good { color: var(--good); }
+  .stat-tile .value.risk { color: var(--risk); }
+  .stat-tile .value.warn { color: var(--warn); }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.risk { background: var(--risk-soft); color: var(--risk); }
+  .pill::before { content: "●"; font-size: 0.6rem; }
+
+  .sparkline-wrap { margin-top: 1rem; display: flex; align-items: center; gap: 1rem; }
+  .sparkline-wrap svg { flex-shrink: 0; }
+  .sparkline-caption { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim); }
+
+  /* ---------- Candidate cards ---------- */
+  .candidates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.9rem;
+  }
+  .candidate {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem 1rem;
+  }
+  .candidate .cname { font-weight: 700; font-size: 0.98rem; }
+  .candidate .crole { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+  .bar-row { display: grid; grid-template-columns: 4.5rem 1fr 2rem; align-items: center; gap: 0.5rem; margin-bottom: 0.32rem; }
+  .bar-row .bname { font-size: 0.72rem; color: var(--text-dim); }
+  .bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+  .bar-row .bval { font-family: var(--font-mono); font-size: 0.72rem; text-align: right; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .trait-chip {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .candidate .cost { float: right; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); }
+
+  /* ---------- Tables ---------- */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Trust meters ---------- */
+  .trust-row { display: grid; grid-template-columns: 8rem 1fr 3rem; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; }
+  .trust-row .tname { font-size: 0.88rem; font-weight: 600; }
+  .trust-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .trust-fill { height: 100%; border-radius: 4px; }
+  .trust-row .tval { font-family: var(--font-mono); font-size: 0.8rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Methodology columns ---------- */
+  .method-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .method-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+  }
+  .method-card h4 { margin: 0 0 0.5rem; font-family: var(--font-display); font-size: 1.05rem; }
+  .method-card ul { margin: 0; padding-left: 1.1rem; font-size: 0.87rem; color: var(--text-dim); }
+  .method-card ul li { margin-bottom: 0.3rem; }
+
+  /* ---------- Scorecard ---------- */
+  .scorecard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .score-tile { text-align: center; padding: 0.9rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
+  .score-tile .grade { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+  .score-tile .glabel { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin-top: 0.2rem; }
+  .grade.good { color: var(--good); } .grade.warn { color: var(--warn); } .grade.risk { color: var(--risk); }
+  .debrief-note {
+    border-left: 3px solid var(--accent);
+    padding: 0.7rem 1rem;
+    background: var(--accent-soft);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+
+  /* ---------- Build-now / later ---------- */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media (max-width: 560px) { .split, .method-grid, .candidates { grid-template-columns: 1fr; } }
+  .split-col h4 {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 0.7rem;
+  }
+  .split-col.now h4 { color: var(--good); }
+  .split-col.later h4 { color: var(--text-faint); }
+  .split-col ul { list-style: none; padding: 0; margin: 0; }
+  .split-col ul li {
+    font-size: 0.9rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .split-col.now ul li { color: var(--text); }
+  .split-col.now ul li::before { content: "✓  "; color: var(--good); font-family: var(--font-mono); }
+  .split-col.later ul li::before { content: "○  "; color: var(--text-faint); font-family: var(--font-mono); }
+
+  /* ---------- Stack note ---------- */
+  .stack-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.9rem 0 1.1rem;
+  }
+  .stack-chip {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+  footer .eyebrow { display: block; margin-bottom: 0.6rem; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .candidate, .stat-tile { transition: border-color 0.15s ease; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <span class="eyebrow">Game Design Document · v0.1 · Single-Player</span>
+    <h1 class="title">Critical Path</h1>
+    <p class="subtitle">A career sim about actually running a software project</p>
+    <p class="premise">
+      You play a software PM working your way up from junior hire to industry name. Each project runs
+      like a real one: you build a risk register before anything catches fire, hire a team under a real
+      budget, and grind through the weekly rhythm of standups, burn-down, and scope fights. The numbers
+      on screen <strong>are</strong> the curriculum. CPI and SPI aren't decoration, they're your actual
+      scorecard, and any risk you skip at kickoff comes back later as a crisis. This doc scopes a single
+      deep project loop, software and IT flavored, with no accounts or backend required.
+    </p>
+  </header>
+
+  <section id="loop">
+    <div class="section-head"><span class="eyebrow">The Core Loop</span></div>
+    <h2>One project, six beats</h2>
+    <p class="dim">The full arc of a single playthrough. Everything else in this doc is detail hung on these six steps.</p>
+    <div class="loop">
+      <div class="loop-step">
+        <div class="loop-num">01</div>
+        <div><h4>Kickoff</h4><p>Brief lands with scope, budget, deadline, and a team cap. Choose a methodology, then draft the initial risk register from a candidate list. Whatever you leave off becomes a crisis with a much higher chance of hitting later.</p></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">02</div>
+        <div><h4>Staff up</h4><p>Hire from a candidate pool under budget pressure. Interview to reveal hidden traits before you commit.</p></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">03</div>
+        <div><h4>The weekbeat</h4><p>Allocate hours, watch the dashboard move, run ceremonies. The repeating heartbeat of the game.</p></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">04</div>
+        <div><h4>Crisis events</h4><p>Random rolls surface a decision, not a cutscene: a quit, a vendor delay, a scope-change request. Stats and prior planning shape your odds, not your dialogue choice alone.</p></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">05</div>
+        <div><h4>Stakeholder review</h4><p>Periodic status meetings. What you emphasize and how you frame bad news moves a trust meter that can end the project early if it collapses.</p></div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">06</div>
+        <div><h4>Delivery &amp; debrief</h4><p>Scored on time, budget, scope, morale, and trust. The debrief ties every miss back to the decision that caused it, which is where the real teaching happens.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="character">
+    <div class="section-head"><span class="eyebrow">Who You Are</span></div>
+    <h2>Character creation</h2>
+    <p>Background sets your starting curve; the rest is six points you place yourself.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Background</th><th>Starts strong in</th><th>Starts weak in</th></tr></thead>
+        <tbody>
+          <tr><td>Engineer → PM</td><td>Technical Acumen, Risk Mgmt</td><td>Negotiation</td></tr>
+          <tr><td>Business Analyst → PM</td><td>Communication, Negotiation</td><td>Technical Acumen</td></tr>
+          <tr><td>Scrum Master → PM</td><td>Leadership, Organization</td><td>Risk Mgmt</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Stat pool</h3>
+    <ul class="clean">
+      <li><strong>Leadership</strong>: team morale decay rate, conflict resolution odds</li>
+      <li><strong>Technical Acumen</strong>: spotting bad estimates, catching tech debt early</li>
+      <li><strong>Communication</strong>: stakeholder trust swing per status update</li>
+      <li><strong>Risk Management</strong>: how much of the risk register you can see and mitigate</li>
+      <li><strong>Negotiation</strong>: odds of talking down scope creep or budget cuts</li>
+      <li><strong>Organization</strong>: planning accuracy, ceremony effectiveness</li>
+    </ul>
+  </section>
+
+  <section id="weekbeat">
+    <div class="section-head"><span class="eyebrow">The Weekbeat</span></div>
+    <h2>The dashboard is the game</h2>
+    <p>Every week, or sprint, moves the same four numbers. Learning to read them, not just reacting to
+    the event pop-ups, is the actual skill the game is teaching.</p>
+    <div class="preview">
+      <div class="preview-label">Preview: weekly dashboard, sprint 7 of 16</div>
+      <div class="stat-row">
+        <div class="stat-tile"><div class="label">CPI</div><div class="value warn">0.91</div></div>
+        <div class="stat-tile"><div class="label">SPI</div><div class="value risk">0.78</div></div>
+        <div class="stat-tile"><div class="label">EV</div><div class="value">$182k</div></div>
+        <div class="stat-tile"><div class="label">AC</div><div class="value">$200k</div></div>
+        <div class="stat-tile"><div class="label">Morale</div><div class="value good">74</div></div>
+      </div>
+      <div class="sparkline-wrap">
+        <svg width="160" height="40" viewBox="0 0 160 40" aria-label="Burn-down trend, behind plan">
+          <polyline points="0,6 25,10 50,14 75,17 100,26 125,29 155,34" fill="none" stroke="var(--text-faint)" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <polyline points="0,4 25,9 50,15 75,22 100,24 125,30 155,31" fill="none" stroke="var(--accent)" stroke-width="2"/>
+          <circle cx="155" cy="31" r="3" fill="var(--accent)"/>
+        </svg>
+        <span class="sparkline-caption">▬ actual burn &nbsp; ┈┈ planned burn</span>
+      </div>
+      <div style="margin-top:0.9rem;"><span class="pill risk">At risk: cost and schedule slipping</span></div>
+    </div>
+    <p class="dim">SPI/CPI below 1.0 means you're behind on cost or schedule. It's recoverable, but
+    every week you ignore it compounds. Waterfall projects surface this through a Gantt and critical-path view instead of a sprint burn-down.</p>
+  </section>
+
+  <section id="team">
+    <div class="section-head"><span class="eyebrow">Hiring</span></div>
+    <h2>Staffing under a budget cap</h2>
+    <p>Candidates carry visible stats and one hidden trait. The only way to see the trait before you
+    hire is to actually interview them, not just read the stat sheet.</p>
+    <div class="candidates">
+      <div class="candidate">
+        <div class="cost">$2.4k/wk</div>
+        <div class="cname">Priya N.</div>
+        <div class="crole">Senior Backend Engineer</div>
+        <div class="bar-row"><span class="bname">Technical</span><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><span class="bval">92</span></div>
+        <div class="bar-row"><span class="bname">Comms</span><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div><span class="bval">54</span></div>
+        <div class="bar-row"><span class="bname">Reliability</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><span class="bval">88</span></div>
+        <span class="trait-chip">Mentor</span>
+      </div>
+      <div class="candidate">
+        <div class="cost">$1.6k/wk</div>
+        <div class="cname">Jordan K.</div>
+        <div class="crole">Full-Stack Dev</div>
+        <div class="bar-row"><span class="bname">Technical</span><div class="bar-track"><div class="bar-fill" style="width:71%"></div></div><span class="bval">71</span></div>
+        <div class="bar-row"><span class="bname">Comms</span><div class="bar-track"><div class="bar-fill" style="width:80%"></div></div><span class="bval">80</span></div>
+        <div class="bar-row"><span class="bname">Reliability</span><div class="bar-track"><div class="bar-fill" style="width:45%"></div></div><span class="bval">45</span></div>
+        <span class="trait-chip">Burnout Risk</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="risk">
+    <div class="section-head"><span class="eyebrow">Planning Screens</span></div>
+    <h2>Risk register &amp; stakeholder trust</h2>
+    <p>Populated at kickoff, referenced by the event roller for the rest of the project.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Prob.</th><th>Impact</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Payment vendor API delay</td><td class="num">35%</td><td class="num">High</td><td><span class="pill warn">Watching</span></td></tr>
+          <tr><td>Key backend dev burnout</td><td class="num">20%</td><td class="num">Med</td><td><span class="pill good">Mitigated</span></td></tr>
+          <tr><td>Compliance scope unclear</td><td class="num">50%</td><td class="num">High</td><td><span class="pill risk">Unaddressed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Stakeholder trust</h3>
+    <div class="trust-row"><span class="tname">Sponsor</span><div class="trust-track"><div class="trust-fill" style="width:81%;background:var(--good)"></div></div><span class="tval">81</span></div>
+    <div class="trust-row"><span class="tname">Product Owner</span><div class="trust-track"><div class="trust-fill" style="width:58%;background:var(--warn)"></div></div><span class="tval">58</span></div>
+    <div class="trust-row"><span class="tname">End-user Rep</span><div class="trust-track"><div class="trust-fill" style="width:39%;background:var(--risk)"></div></div><span class="tval">39</span></div>
+  </section>
+
+  <section id="method">
+    <div class="section-head"><span class="eyebrow">Kickoff Choice</span></div>
+    <h2>Methodology changes the mechanics, not just the label</h2>
+    <div class="method-grid">
+      <div class="method-card">
+        <h4>Waterfall</h4>
+        <ul><li>Phase-gate reviews</li><li>Gantt / critical-path view</li><li>Formal change-control on scope</li></ul>
+      </div>
+      <div class="method-card">
+        <h4>Scrum</h4>
+        <ul><li>Sprint planning &amp; retros</li><li>Velocity &amp; backlog</li><li>Standups surface small events early</li></ul>
+      </div>
+      <div class="method-card">
+        <h4>Hybrid</h4>
+        <ul><li>Gate reviews at milestones</li><li>Sprint execution in between</li><li>Hardest to run well; highest ceiling</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="debrief">
+    <div class="section-head"><span class="eyebrow">Endgame</span></div>
+    <h2>Delivery &amp; debrief</h2>
+    <div class="scorecard">
+      <div class="score-tile"><div class="grade warn">B–</div><div class="glabel">Time</div></div>
+      <div class="score-tile"><div class="grade risk">C</div><div class="glabel">Budget</div></div>
+      <div class="score-tile"><div class="grade good">A–</div><div class="glabel">Scope</div></div>
+      <div class="score-tile"><div class="grade good">B+</div><div class="glabel">Morale</div></div>
+      <div class="score-tile"><div class="grade warn">B–</div><div class="glabel">Trust</div></div>
+    </div>
+    <div class="debrief-note">
+      "Compliance scope unclear" was flagged 50% likely and left unaddressed at kickoff. It triggered in
+      week 9 and cost two weeks and $30k once legal got involved. An unmitigated <em>high-probability,
+      high-impact</em> risk should have gotten a response plan, not just a watch note.
+    </div>
+  </section>
+
+  <section id="mvp">
+    <div class="section-head"><span class="eyebrow">Scoping v0.1</span></div>
+    <h2>Build now vs. build later</h2>
+    <div class="split">
+      <div class="split-col now">
+        <h4>Build now</h4>
+        <ul>
+          <li>Character creation + stat allocation</li>
+          <li>One project brief, Scrum only</li>
+          <li>Hiring from a fixed candidate pool</li>
+          <li>Weekly cycle + EVM dashboard</li>
+          <li>~6–8 scripted crisis events</li>
+          <li>3 stakeholder trust meters</li>
+          <li>Scorecard + debrief screen</li>
+          <li>Local save (single slot)</li>
+        </ul>
+      </div>
+      <div class="split-col later">
+        <h4>Later</h4>
+        <ul>
+          <li>Career mode across many projects</li>
+          <li>Waterfall / Hybrid methodologies</li>
+          <li>Reputation &amp; certification tree</li>
+          <li>Procedural brief generation</li>
+          <li>Team members persisting between projects</li>
+          <li>Rival PMs and a reputation leaderboard</li>
+          <li>Multiple industries</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="section-head"><span class="eyebrow">Implementation</span></div>
+    <h2>Suggested stack</h2>
+    <p class="dim">Single-player, no accounts, so no backend is needed for v0.1.</p>
+    <div class="stack-row">
+      <span class="stack-chip">React + Vite + TS</span>
+      <span class="stack-chip">Zustand (game state)</span>
+      <span class="stack-chip">localStorage save</span>
+      <span class="stack-chip">Vitest (event/EVM logic)</span>
+    </div>
+    <p class="dim">Keeping game state as a single serializable store keeps the debrief screen honest: it's
+    just reading back the same numbers the dashboard already showed.</p>
+  </section>
+
+  <footer>
+    <span class="eyebrow">Next</span>
+    Say the word and I'll scaffold the Vite project, build the game-state store (project/team/risk register
+    types), and get the character creation → kickoff → first weekbeat screen running end to end.
+  </footer>
+
+</div>

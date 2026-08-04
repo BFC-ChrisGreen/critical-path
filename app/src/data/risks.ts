@@ -1,0 +1,49 @@
+import type { Risk } from '../types';
+
+export const INITIAL_RISKS: Risk[] = [
+  {
+    id: 'vendorDelay',
+    name: 'Payment vendor API delay',
+    probability: 0.35,
+    impact: 'high',
+    mitigationCost: 8000,
+    mitigated: false,
+    triggered: false,
+  },
+  {
+    id: 'burnout',
+    name: 'Key developer burnout',
+    probability: 0.2,
+    impact: 'medium',
+    mitigationCost: 4000,
+    mitigated: false,
+    triggered: false,
+  },
+  {
+    id: 'complianceScope',
+    name: 'Compliance scope unclear',
+    probability: 0.5,
+    impact: 'high',
+    mitigationCost: 10000,
+    mitigated: false,
+    triggered: false,
+  },
+  {
+    id: 'thirdPartyDesign',
+    name: 'Design handoff incomplete',
+    probability: 0.3,
+    impact: 'medium',
+    mitigationCost: 3000,
+    mitigated: false,
+    triggered: false,
+  },
+  {
+    id: 'infraCost',
+    name: 'Cloud infrastructure underestimated',
+    probability: 0.25,
+    impact: 'low',
+    mitigationCost: 2500,
+    mitigated: false,
+    triggered: false,
+  },
+];
