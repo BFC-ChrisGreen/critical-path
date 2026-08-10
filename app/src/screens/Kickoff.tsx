@@ -2,6 +2,7 @@ import { useGameStore } from '../store';
 import { Pill } from '../components/Pill';
 import { Bar } from '../components/Bar';
 import { TRAIT_BLURB, TRAIT_LABEL } from '../data/candidates';
+import { PROJECT_TEMPLATES } from '../data/projects';
 import { weeklyPayroll } from '../engine/evm';
 import type { ImpactLevel } from '../types';
 
@@ -14,10 +15,14 @@ const IMPACT_TONE: Record<ImpactLevel, 'good' | 'warn' | 'risk'> = {
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
 export function Kickoff() {
+  const projectId = useGameStore((s) => s.projectId);
   const project = useGameStore((s) => s.project);
+  const milestones = useGameStore((s) => s.milestones);
   const riskRegister = useGameStore((s) => s.riskRegister);
   const candidatePool = useGameStore((s) => s.candidatePool);
   const team = useGameStore((s) => s.team);
+  const chooseProject = useGameStore((s) => s.chooseProject);
+  const setMilestoneWeek = useGameStore((s) => s.setMilestoneWeek);
   const toggleMitigate = useGameStore((s) => s.toggleMitigate);
   const hireCandidate = useGameStore((s) => s.hireCandidate);
   const releaseCandidate = useGameStore((s) => s.releaseCandidate);
@@ -27,6 +32,39 @@ export function Kickoff() {
   const remainingBudget = project.budget - spentOnMitigation;
   const payroll = weeklyPayroll(team);
   const teamFull = team.length >= project.teamCap;
+
+  if (!projectId) {
+    return (
+      <div className="stack" style={{ gap: '2rem' }}>
+        <div>
+          <span className="eyebrow">Promotion</span>
+          <h1 style={{ fontSize: '2.1rem', margin: '0.5rem 0 0.4rem' }}>You've been made PM. Pick your project.</h1>
+          <p style={{ color: 'var(--text-dim)', maxWidth: '60ch' }}>
+            Three briefs landed on your desk. Whichever you take runs for its full duration — choose carefully,
+            there's no switching once you commit.
+          </p>
+        </div>
+        <div className="bg-options">
+          {PROJECT_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.id}
+              type="button"
+              className="bg-card"
+              onClick={() => chooseProject(tpl.id)}
+            >
+              <h4>{tpl.name}</h4>
+              <p>{tpl.brief}</p>
+              <div className="row" style={{ marginTop: '0.8rem', gap: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--text-faint)' }}>
+                  {money(tpl.budget)} &middot; {tpl.durationWeeks}w &middot; team of {tpl.teamCap}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="stack" style={{ gap: '2rem' }}>
@@ -118,6 +156,40 @@ export function Kickoff() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="panel stack">
+        <div>
+          <span className="eyebrow">Milestones</span>
+          <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem', margin: '0.3rem 0 0' }}>
+            Set the week you're targeting for each. These track on the weekly dashboard once the project starts.
+          </p>
+        </div>
+        {milestones.map((m) => (
+          <div className="stat-alloc" key={m.id}>
+            <span className="sname">{m.label}</span>
+            <Bar value={m.targetWeek} max={project.durationWeeks} />
+            <div className="controls">
+              <span className="stat-value">wk {m.targetWeek}</span>
+              <button
+                type="button"
+                className="stepper-btn"
+                onClick={() => setMilestoneWeek(m.id, m.targetWeek - 1)}
+                disabled={m.targetWeek <= 1}
+              >
+                −
+              </button>
+              <button
+                type="button"
+                className="stepper-btn"
+                onClick={() => setMilestoneWeek(m.id, m.targetWeek + 1)}
+                disabled={m.targetWeek >= project.durationWeeks}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       <button type="button" className="btn btn-primary btn-block" onClick={startProject}>

@@ -72,6 +72,14 @@ export interface ProjectState {
 
 export type GameOverReason = 'delivered' | 'cancelled' | 'bankrupt' | null;
 
+export type MilestoneId = 'design' | 'identity' | 'production' | 'distribution';
+
+export interface Milestone {
+  id: MilestoneId;
+  label: string;
+  targetWeek: number;
+}
+
 export interface PendingEvent {
   eventId: string;
 }
@@ -86,7 +94,9 @@ export interface GameState {
   screen: Screen;
   personalityAllocation: Stats | null;
   character: Character | null;
+  projectId: string | null;
   project: ProjectState;
+  milestones: Milestone[];
   team: Candidate[];
   candidatePool: Candidate[];
   riskRegister: Risk[];

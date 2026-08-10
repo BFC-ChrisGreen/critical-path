@@ -43,6 +43,7 @@ function Sparkline({ history, durationWeeks, budget }: { history: { week: number
 export function Weekbeat() {
   const project = useGameStore((s) => s.project);
   const morale = useGameStore((s) => s.morale);
+  const milestones = useGameStore((s) => s.milestones);
   const riskRegister = useGameStore((s) => s.riskRegister);
   const stakeholders = useGameStore((s) => s.stakeholders);
   const eventLog = useGameStore((s) => s.eventLog);
@@ -72,6 +73,32 @@ export function Weekbeat() {
           <div className="stat-tile"><div className="label">Morale</div><div className={`value ${morale >= 60 ? 'good' : morale >= 35 ? 'warn' : 'risk'}`}>{Math.round(morale)}</div></div>
         </div>
         <Sparkline history={history} durationWeeks={project.durationWeeks} budget={project.budget} />
+      </div>
+
+      <div className="panel stack">
+        <span className="eyebrow">Milestones</span>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Milestone</th><th>Target week</th><th>Status</th></tr></thead>
+            <tbody>
+              {milestones.map((m) => (
+                <tr key={m.id}>
+                  <td>{m.label}</td>
+                  <td className="num">wk {m.targetWeek}</td>
+                  <td>
+                    {project.week > m.targetWeek ? (
+                      <Pill tone="good">Passed</Pill>
+                    ) : project.week === m.targetWeek ? (
+                      <Pill tone="warn">Due this week</Pill>
+                    ) : (
+                      <span style={{ color: 'var(--text-faint)', fontSize: '0.85rem' }}>Upcoming</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="grid-2">

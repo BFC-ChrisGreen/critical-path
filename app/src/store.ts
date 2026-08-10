@@ -4,6 +4,8 @@ import type {
   GameState,
   HistoryPoint,
   LogEntry,
+  Milestone,
+  MilestoneId,
   Screen,
   Stakeholder,
   StakeholderId,
@@ -13,21 +15,30 @@ import { CANDIDATE_POOL } from './data/candidates';
 import { INITIAL_RISKS } from './data/risks';
 import { INITIAL_STAKEHOLDERS } from './data/stakeholders';
 import { EVENTS, FLOATING_EVENTS, RISK_EVENT_MAP } from './data/events';
+import { PROJECT_TEMPLATES } from './data/projects';
 import { avgTechnical, cpi, productivityFactor, spi, weeklyPayroll, clamp, earnedValue } from './engine/evm';
 
 const SAVE_KEY = 'critical-path-save-v1';
 
-const PROJECT_TEMPLATE = {
-  name: 'Meridian Pay',
-  brief:
-    'A mobile banking app for a regional credit union. Account overview, P2P transfers, and a payment-vendor integration for bill pay. The board wants it live in time for the spring product launch.',
-  durationWeeks: 16,
-  budget: 400000,
-  teamCap: 4,
+const MILESTONE_LABEL: Record<MilestoneId, string> = {
+  design: 'Product design & capabilities',
+  identity: 'Product identity',
+  production: 'Production status',
+  distribution: 'Distribution',
 };
 
+function defaultMilestones(durationWeeks: number): Milestone[] {
+  return [
+    { id: 'design', label: MILESTONE_LABEL.design, targetWeek: Math.max(1, Math.ceil(durationWeeks * 0.25)) },
+    { id: 'identity', label: MILESTONE_LABEL.identity, targetWeek: Math.max(1, Math.ceil(durationWeeks * 0.5)) },
+    { id: 'production', label: MILESTONE_LABEL.production, targetWeek: Math.max(1, Math.ceil(durationWeeks * 0.75)) },
+    { id: 'distribution', label: MILESTONE_LABEL.distribution, targetWeek: durationWeeks },
+  ];
+}
+
 function freshProject() {
-  return { ...PROJECT_TEMPLATE, week: 0, ac: 0, percentComplete: 0 };
+  const template = PROJECT_TEMPLATES[0];
+  return { ...template, week: 0, ac: 0, percentComplete: 0 };
 }
 
 function initialState(): GameState {
@@ -35,7 +46,9 @@ function initialState(): GameState {
     screen: 'intro',
     personalityAllocation: null,
     character: null,
+    projectId: null,
     project: freshProject(),
+    milestones: [],
     team: [],
     candidatePool: CANDIDATE_POOL.map((c) => ({ ...c })),
     riskRegister: INITIAL_RISKS.map((r) => ({ ...r })),
@@ -52,6 +65,8 @@ interface Store extends GameState {
   completeIntro: () => void;
   completePersonality: (allocation: Stats) => void;
   createCharacter: (name: string, background: Background, stats: Stats) => void;
+  chooseProject: (id: string) => void;
+  setMilestoneWeek: (id: MilestoneId, week: number) => void;
   toggleMitigate: (riskId: string) => void;
   hireCandidate: (id: string) => void;
   releaseCandidate: (id: string) => void;
@@ -164,6 +179,24 @@ export const useGameStore = create<Store>((set, get) => ({
   createCharacter: (name, background, stats) => {
     set({ character: { name, background, stats }, screen: 'kickoff' });
     get().persist();
+  },
+
+  chooseProject: (id) => {
+    const template = PROJECT_TEMPLATES.find((t) => t.id === id);
+    if (!template) return;
+    set({
+      projectId: id,
+      project: { ...template, week: 0, ac: 0, percentComplete: 0 },
+      milestones: defaultMilestones(template.durationWeeks),
+    });
+  },
+
+  setMilestoneWeek: (id, week) => {
+    set((state) => ({
+      milestones: state.milestones.map((m) =>
+        m.id === id ? { ...m, targetWeek: clamp(week, 1, state.project.durationWeeks) } : m,
+      ),
+    }));
   },
 
   toggleMitigate: (riskId) => {
@@ -296,11 +329,11 @@ export const useGameStore = create<Store>((set, get) => ({
   },
 
   persist: () => {
-    const { screen, personalityAllocation, character, project, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history } = get();
+    const { screen, personalityAllocation, character, projectId, project, milestones, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history } = get();
     try {
       localStorage.setItem(
         SAVE_KEY,
-        JSON.stringify({ screen, personalityAllocation, character, project, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history }),
+        JSON.stringify({ screen, personalityAllocation, character, projectId, project, milestones, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history }),
       );
     } catch {
       // storage unavailable, skip silently
