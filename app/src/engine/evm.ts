@@ -1,4 +1,4 @@
-import type { Candidate, ProjectState, Stats } from '../types';
+import type { Candidate, ProjectState } from '../types';
 
 export function weeklyPayroll(team: Candidate[]): number {
   return team.reduce((sum, m) => sum + m.costPerWeek, 0);
@@ -24,17 +24,6 @@ export function cpi(project: ProjectState): number {
 export function spi(project: ProjectState): number {
   const pv = plannedValue(project);
   return pv > 0 ? earnedValue(project) / pv : 1;
-}
-
-export function productivityFactor(team: Candidate[], stats: Stats, morale: number): number {
-  const tech = avgTechnical(team);
-  const base =
-    0.85 +
-    (tech - 50) / 200 +
-    (stats.organization - 50) / 300 +
-    (morale - 50) / 400 +
-    (Math.random() - 0.5) * 0.12;
-  return Math.max(0.4, Math.min(1.35, base));
 }
 
 export function clamp(value: number, min: number, max: number): number {

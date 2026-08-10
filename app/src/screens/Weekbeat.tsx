@@ -1,7 +1,11 @@
 import { useGameStore } from '../store';
 import { Pill } from '../components/Pill';
+import { Gantt } from '../components/Gantt';
 import { EVENTS } from '../data/events';
 import { cpi, spi } from '../engine/evm';
+import { computeSchedule, criticalPathWeeks } from '../engine/criticalPath';
+import { isUnlocked } from '../engine/tasks';
+import type { Candidate, Task } from '../types';
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
@@ -40,10 +44,103 @@ function Sparkline({ history, durationWeeks, budget }: { history: { week: number
   );
 }
 
+function TaskBoard({
+  tasks,
+  team,
+  criticalIds,
+  assignTask,
+  unassignTask,
+}: {
+  tasks: Task[];
+  team: Candidate[];
+  criticalIds: Set<string>;
+  assignTask: (taskId: string, candidateId: string) => void;
+  unassignTask: (taskId: string) => void;
+}) {
+  const byId = new Map(tasks.map((t) => [t.id, t]));
+  const assignedIds = new Set(tasks.filter((t) => t.assignedTo).map((t) => t.assignedTo as string));
+  const freeTeam = team.filter((c) => !assignedIds.has(c.id));
+
+  const todo = tasks.filter((t) => t.status === 'todo');
+  const inProgress = tasks.filter((t) => t.status === 'inProgress');
+  const done = tasks.filter((t) => t.status === 'done');
+
+  return (
+    <div className="task-board">
+      <div className="task-column">
+        <span className="col-title">To do</span>
+        {todo.map((task) => {
+          const unlocked = isUnlocked(task, tasks);
+          const blockedBy = task.dependencies
+            .map((id) => byId.get(id))
+            .filter((dep) => dep && dep.status !== 'done')
+            .map((dep) => dep!.name);
+          return (
+            <div className={`task-card ${unlocked ? '' : 'blocked'} ${criticalIds.has(task.id) ? 'critical' : ''}`} key={task.id}>
+              <div className="tname">{task.name}</div>
+              <div className="test">{task.estimateWeeks}w estimate</div>
+              {unlocked ? (
+                freeTeam.length > 0 ? (
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      if (e.target.value) assignTask(task.id, e.target.value);
+                    }}
+                  >
+                    <option value="" disabled>Assign someone&hellip;</option>
+                    {freeTeam.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="test">No free team members</div>
+                )
+              ) : (
+                <div className="test">Blocked by: {blockedBy.join(', ')}</div>
+              )}
+            </div>
+          );
+        })}
+        {todo.length === 0 && <p style={{ color: 'var(--text-faint)', fontSize: '0.82rem' }}>Nothing queued.</p>}
+      </div>
+
+      <div className="task-column">
+        <span className="col-title">In progress</span>
+        {inProgress.map((task) => {
+          const assignee = team.find((c) => c.id === task.assignedTo);
+          return (
+            <div className={`task-card ${criticalIds.has(task.id) ? 'critical' : ''}`} key={task.id}>
+              <div className="tname">{task.name}</div>
+              <div className="test">{task.remainingWeeks.toFixed(1)}w remaining</div>
+              {assignee && <div className="tassignee">{assignee.name}</div>}
+              <button type="button" className="btn unassign-btn" onClick={() => unassignTask(task.id)}>
+                Unassign
+              </button>
+            </div>
+          );
+        })}
+        {inProgress.length === 0 && <p style={{ color: 'var(--text-faint)', fontSize: '0.82rem' }}>Nothing in progress.</p>}
+      </div>
+
+      <div className="task-column">
+        <span className="col-title">Done</span>
+        {done.map((task) => (
+          <div className="task-card" key={task.id}>
+            <div className="tname">&#10003; {task.name}</div>
+          </div>
+        ))}
+        {done.length === 0 && <p style={{ color: 'var(--text-faint)', fontSize: '0.82rem' }}>Nothing finished yet.</p>}
+      </div>
+    </div>
+  );
+}
+
 export function Weekbeat() {
   const project = useGameStore((s) => s.project);
   const morale = useGameStore((s) => s.morale);
   const milestones = useGameStore((s) => s.milestones);
+  const tasks = useGameStore((s) => s.tasks);
+  const team = useGameStore((s) => s.team);
   const riskRegister = useGameStore((s) => s.riskRegister);
   const stakeholders = useGameStore((s) => s.stakeholders);
   const eventLog = useGameStore((s) => s.eventLog);
@@ -51,10 +148,15 @@ export function Weekbeat() {
   const history = useGameStore((s) => s.history);
   const advanceWeek = useGameStore((s) => s.advanceWeek);
   const resolveEvent = useGameStore((s) => s.resolveEvent);
+  const assignTask = useGameStore((s) => s.assignTask);
+  const unassignTask = useGameStore((s) => s.unassignTask);
 
   const cpiVal = cpi(project);
   const spiVal = spi(project);
   const activeEvent = pendingEvent ? EVENTS.find((e) => e.id === pendingEvent.eventId) : null;
+  const schedule = computeSchedule(tasks);
+  const criticalIds = new Set(Object.entries(schedule).filter(([, s]) => s.isCritical).map(([id]) => id));
+  const criticalWeeks = criticalPathWeeks(tasks);
 
   return (
     <div className="stack" style={{ gap: '1.6rem' }}>
@@ -99,6 +201,21 @@ export function Weekbeat() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="panel stack">
+        <div className="row-between">
+          <span className="eyebrow">Schedule</span>
+          <Pill tone={criticalWeeks > project.durationWeeks ? 'risk' : 'good'}>
+            Critical path: {criticalWeeks.toFixed(1)} / {project.durationWeeks}w
+          </Pill>
+        </div>
+        <Gantt tasks={tasks} durationWeeks={project.durationWeeks} currentWeek={project.week} />
+      </div>
+
+      <div className="panel stack">
+        <span className="eyebrow">Task board</span>
+        <TaskBoard tasks={tasks} team={team} criticalIds={criticalIds} assignTask={assignTask} unassignTask={unassignTask} />
       </div>
 
       <div className="grid-2">

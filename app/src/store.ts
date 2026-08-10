@@ -10,13 +10,16 @@ import type {
   Stakeholder,
   StakeholderId,
   Stats,
+  Task,
 } from './types';
 import { CANDIDATE_POOL } from './data/candidates';
 import { INITIAL_RISKS } from './data/risks';
 import { INITIAL_STAKEHOLDERS } from './data/stakeholders';
 import { EVENTS, FLOATING_EVENTS, RISK_EVENT_MAP } from './data/events';
 import { PROJECT_TEMPLATES } from './data/projects';
-import { avgTechnical, cpi, productivityFactor, spi, weeklyPayroll, clamp, earnedValue } from './engine/evm';
+import { buildTasks } from './data/tasks';
+import { avgTechnical, cpi, spi, weeklyPayroll, clamp, earnedValue } from './engine/evm';
+import { advanceTasks, isUnlocked, taskProgressPercent } from './engine/tasks';
 
 const SAVE_KEY = 'critical-path-save-v1';
 
@@ -38,7 +41,7 @@ function defaultMilestones(durationWeeks: number): Milestone[] {
 
 function freshProject() {
   const template = PROJECT_TEMPLATES[0];
-  return { ...template, week: 0, ac: 0, percentComplete: 0 };
+  return { ...template, week: 0, ac: 0, percentComplete: 0, scopeAdjustment: 0 };
 }
 
 function initialState(): GameState {
@@ -49,6 +52,7 @@ function initialState(): GameState {
     projectId: null,
     project: freshProject(),
     milestones: [],
+    tasks: [],
     team: [],
     candidatePool: CANDIDATE_POOL.map((c) => ({ ...c })),
     riskRegister: INITIAL_RISKS.map((r) => ({ ...r })),
@@ -67,6 +71,8 @@ interface Store extends GameState {
   createCharacter: (name: string, background: Background, stats: Stats) => void;
   chooseProject: (id: string) => void;
   setMilestoneWeek: (id: MilestoneId, week: number) => void;
+  assignTask: (taskId: string, candidateId: string) => void;
+  unassignTask: (taskId: string) => void;
   toggleMitigate: (riskId: string) => void;
   hireCandidate: (id: string) => void;
   releaseCandidate: (id: string) => void;
@@ -113,6 +119,7 @@ function finishWeekTail(
   morale: number,
   stakeholders: Stakeholder[],
   riskRegister: GameState['riskRegister'],
+  tasks: Task[],
   eventLog: LogEntry[],
   history: HistoryPoint[],
 ): Partial<GameState> {
@@ -155,6 +162,7 @@ function finishWeekTail(
     morale,
     stakeholders: nextStakeholders,
     riskRegister,
+    tasks,
     eventLog: nextLog,
     screen,
     gameOver,
@@ -186,8 +194,9 @@ export const useGameStore = create<Store>((set, get) => ({
     if (!template) return;
     set({
       projectId: id,
-      project: { ...template, week: 0, ac: 0, percentComplete: 0 },
+      project: { ...template, week: 0, ac: 0, percentComplete: 0, scopeAdjustment: 0 },
       milestones: defaultMilestones(template.durationWeeks),
+      tasks: buildTasks(template.durationWeeks),
     });
   },
 
@@ -195,6 +204,29 @@ export const useGameStore = create<Store>((set, get) => ({
     set((state) => ({
       milestones: state.milestones.map((m) =>
         m.id === id ? { ...m, targetWeek: clamp(week, 1, state.project.durationWeeks) } : m,
+      ),
+    }));
+  },
+
+  assignTask: (taskId, candidateId) => {
+    set((state) => {
+      const task = state.tasks.find((t) => t.id === taskId);
+      if (!task || task.status !== 'todo' || !isUnlocked(task, state.tasks)) return state;
+      const isFree = state.team.some((c) => c.id === candidateId) &&
+        !state.tasks.some((t) => t.assignedTo === candidateId);
+      if (!isFree) return state;
+      return {
+        tasks: state.tasks.map((t) =>
+          t.id === taskId ? { ...t, status: 'inProgress', assignedTo: candidateId } : t,
+        ),
+      };
+    });
+  },
+
+  unassignTask: (taskId) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        t.id === taskId && t.status === 'inProgress' ? { ...t, status: 'todo', assignedTo: null } : t,
       ),
     }));
   },
@@ -251,10 +283,8 @@ export const useGameStore = create<Store>((set, get) => ({
     const project = { ...state.project, week: state.project.week + 1 };
     project.ac += weeklyPayroll(state.team);
 
-    const factor = productivityFactor(state.team, state.character!.stats, state.morale);
-    const weeklyPV = project.budget / project.durationWeeks;
-    const earnedIncrement = weeklyPV * factor;
-    project.percentComplete = clamp(project.percentComplete + (earnedIncrement / project.budget) * 100, 0, 100);
+    const tasks = advanceTasks(state.tasks, state.team, state.morale);
+    project.percentComplete = clamp(taskProgressPercent(tasks) + project.scopeAdjustment, 0, 100);
 
     let morale = clamp(state.morale + (state.character!.stats.leadership - 50) / 40, 0, 100);
 
@@ -283,13 +313,14 @@ export const useGameStore = create<Store>((set, get) => ({
         project,
         morale,
         riskRegister,
+        tasks,
         pendingEvent: { eventId: triggeredEventId },
       });
       get().persist();
       return;
     }
 
-    set(finishWeekTail(project, morale, state.stakeholders, riskRegister, state.eventLog, state.history));
+    set(finishWeekTail(project, morale, state.stakeholders, riskRegister, tasks, state.eventLog, state.history));
     get().persist();
   },
 
@@ -305,7 +336,8 @@ export const useGameStore = create<Store>((set, get) => ({
 
     const project = { ...state.project };
     project.ac = Math.max(0, project.ac + (outcome.acDelta ?? 0));
-    project.percentComplete = clamp(project.percentComplete + (outcome.percentDelta ?? 0), 0, 100);
+    project.scopeAdjustment += outcome.percentDelta ?? 0;
+    project.percentComplete = clamp(taskProgressPercent(state.tasks) + project.scopeAdjustment, 0, 100);
 
     const morale = clamp(state.morale + (outcome.moraleDelta ?? 0), 0, 100);
 
@@ -319,7 +351,7 @@ export const useGameStore = create<Store>((set, get) => ({
       { week: project.week, title: event.title, message: outcome.message, kind: 'event' },
     ];
 
-    set(finishWeekTail(project, morale, stakeholders, state.riskRegister, eventLog, state.history));
+    set(finishWeekTail(project, morale, stakeholders, state.riskRegister, state.tasks, eventLog, state.history));
     get().persist();
   },
 
@@ -329,11 +361,11 @@ export const useGameStore = create<Store>((set, get) => ({
   },
 
   persist: () => {
-    const { screen, personalityAllocation, character, projectId, project, milestones, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history } = get();
+    const { screen, personalityAllocation, character, projectId, project, milestones, tasks, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history } = get();
     try {
       localStorage.setItem(
         SAVE_KEY,
-        JSON.stringify({ screen, personalityAllocation, character, projectId, project, milestones, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history }),
+        JSON.stringify({ screen, personalityAllocation, character, projectId, project, milestones, tasks, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history }),
       );
     } catch {
       // storage unavailable, skip silently

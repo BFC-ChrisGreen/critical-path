@@ -68,6 +68,7 @@ export interface ProjectState {
   week: number;
   ac: number;
   percentComplete: number;
+  scopeAdjustment: number;
 }
 
 export type GameOverReason = 'delivered' | 'cancelled' | 'bankrupt' | null;
@@ -78,6 +79,19 @@ export interface Milestone {
   id: MilestoneId;
   label: string;
   targetWeek: number;
+}
+
+export type TaskStatus = 'todo' | 'inProgress' | 'done';
+
+export interface Task {
+  id: string;
+  name: string;
+  description: string;
+  dependencies: string[];
+  estimateWeeks: number;
+  remainingWeeks: number;
+  status: TaskStatus;
+  assignedTo: string | null;
 }
 
 export interface PendingEvent {
@@ -97,6 +111,7 @@ export interface GameState {
   projectId: string | null;
   project: ProjectState;
   milestones: Milestone[];
+  tasks: Task[];
   team: Candidate[];
   candidatePool: Candidate[];
   riskRegister: Risk[];
