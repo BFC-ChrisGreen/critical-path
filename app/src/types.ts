@@ -25,6 +25,8 @@ export interface Candidate {
 
 export type ImpactLevel = 'low' | 'medium' | 'high';
 
+export type ContingencyStance = 'absorb' | 'escalate' | 'delegate';
+
 export interface Risk {
   id: string;
   name: string;
@@ -33,6 +35,7 @@ export interface Risk {
   mitigationCost: number;
   mitigated: boolean;
   triggered: boolean;
+  contingency: ContingencyStance | null;
 }
 
 export type StakeholderId = 'sponsor' | 'productOwner' | 'endUser';

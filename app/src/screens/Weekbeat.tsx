@@ -5,7 +5,16 @@ import { EVENTS } from '../data/events';
 import { cpi, spi } from '../engine/evm';
 import { computeSchedule, criticalPathWeeks } from '../engine/criticalPath';
 import { isUnlocked } from '../engine/tasks';
+import { deriveSwot, type SwotResult } from '../engine/swot';
+import { CONTINGENCY_LABEL } from '../engine/contingency';
 import type { Candidate, Task } from '../types';
+
+const SWOT_QUADRANTS: { key: keyof SwotResult; label: string }[] = [
+  { key: 'strengths', label: 'Strengths' },
+  { key: 'weaknesses', label: 'Weaknesses' },
+  { key: 'opportunities', label: 'Opportunities' },
+  { key: 'threats', label: 'Threats' },
+];
 
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
@@ -157,6 +166,7 @@ export function Weekbeat() {
   const schedule = computeSchedule(tasks);
   const criticalIds = new Set(Object.entries(schedule).filter(([, s]) => s.isCritical).map(([id]) => id));
   const criticalWeeks = criticalPathWeeks(tasks);
+  const swot = deriveSwot({ team, morale, project, riskRegister, stakeholders, milestones });
 
   return (
     <div className="stack" style={{ gap: '1.6rem' }}>
@@ -218,12 +228,28 @@ export function Weekbeat() {
         <TaskBoard tasks={tasks} team={team} criticalIds={criticalIds} assignTask={assignTask} unassignTask={unassignTask} />
       </div>
 
+      <div className="panel stack">
+        <span className="eyebrow">SWOT</span>
+        <div className="swot-grid">
+          {SWOT_QUADRANTS.map(({ key, label }) => (
+            <div className={`swot-quadrant ${key}`} key={key}>
+              <h4>{label}</h4>
+              <ul>
+                {swot[key].map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid-2">
         <div className="panel stack">
           <span className="eyebrow">Risk register</span>
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Risk</th><th>Status</th></tr></thead>
+              <thead><tr><th>Risk</th><th>Status</th><th>Contingency</th></tr></thead>
               <tbody>
                 {riskRegister.map((r) => (
                   <tr key={r.id}>
@@ -236,6 +262,9 @@ export function Weekbeat() {
                       ) : (
                         <Pill tone="warn">Watching</Pill>
                       )}
+                    </td>
+                    <td style={{ color: r.contingency ? 'var(--text)' : 'var(--text-faint)', fontSize: '0.85rem' }}>
+                      {r.contingency ? CONTINGENCY_LABEL[r.contingency] : 'None'}
                     </td>
                   </tr>
                 ))}

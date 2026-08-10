@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type {
   Background,
+  ContingencyStance,
   GameState,
   HistoryPoint,
   LogEntry,
@@ -20,6 +21,7 @@ import { PROJECT_TEMPLATES } from './data/projects';
 import { buildTasks } from './data/tasks';
 import { avgTechnical, cpi, spi, weeklyPayroll, clamp, earnedValue } from './engine/evm';
 import { advanceTasks, isUnlocked, taskProgressPercent } from './engine/tasks';
+import { applyContingency } from './engine/contingency';
 
 const SAVE_KEY = 'critical-path-save-v1';
 
@@ -74,6 +76,7 @@ interface Store extends GameState {
   assignTask: (taskId: string, candidateId: string) => void;
   unassignTask: (taskId: string) => void;
   toggleMitigate: (riskId: string) => void;
+  setContingency: (riskId: string, stance: ContingencyStance | null) => void;
   hireCandidate: (id: string) => void;
   releaseCandidate: (id: string) => void;
   startProject: () => void;
@@ -247,6 +250,12 @@ export const useGameStore = create<Store>((set, get) => ({
     });
   },
 
+  setContingency: (riskId, stance) => {
+    set((state) => ({
+      riskRegister: state.riskRegister.map((r) => (r.id === riskId ? { ...r, contingency: stance } : r)),
+    }));
+  },
+
   hireCandidate: (id) => {
     set((state) => {
       if (state.team.length >= state.project.teamCap) return state;
@@ -332,7 +341,14 @@ export const useGameStore = create<Store>((set, get) => ({
     const choice = event.choices.find((c) => c.id === choiceId);
     if (!choice) return;
 
-    const outcome = choice.resolve({ stats: state.character!.stats, team: state.team, project: state.project });
+    let outcome = choice.resolve({ stats: state.character!.stats, team: state.team, project: state.project });
+
+    if (event.riskId) {
+      const risk = state.riskRegister.find((r) => r.id === event.riskId);
+      if (risk?.contingency) {
+        outcome = applyContingency(outcome, risk.contingency, state.project.budget);
+      }
+    }
 
     const project = { ...state.project };
     project.ac = Math.max(0, project.ac + (outcome.acDelta ?? 0));

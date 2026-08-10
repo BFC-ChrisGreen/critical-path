@@ -293,6 +293,17 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .task-card select { width: 100%; margin-top: 0.5rem; padding: 0.4rem 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.8rem; }
 .task-card .unassign-btn { margin-top: 0.5rem; width: 100%; font-size: 0.78rem; padding: 0.4rem 0.6rem; }
 
+.swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 640px) { .swot-grid { grid-template-columns: 1fr; } }
+.swot-quadrant { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 0.9rem; }
+.swot-quadrant h4 { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.swot-quadrant.strengths h4, .swot-quadrant.opportunities h4 { color: var(--good); }
+.swot-quadrant.weaknesses h4, .swot-quadrant.threats h4 { color: var(--risk); }
+.swot-quadrant ul { margin: 0; padding-left: 1.1rem; font-size: 0.82rem; color: var(--text-dim); }
+.swot-quadrant li { margin-bottom: 0.3rem; }
+
+.contingency-select { padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.8rem; }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }

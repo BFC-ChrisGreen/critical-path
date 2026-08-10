@@ -9,6 +9,7 @@ export const INITIAL_RISKS: Risk[] = [
     mitigationCost: 8000,
     mitigated: false,
     triggered: false,
+    contingency: null,
   },
   {
     id: 'burnout',
@@ -18,6 +19,7 @@ export const INITIAL_RISKS: Risk[] = [
     mitigationCost: 4000,
     mitigated: false,
     triggered: false,
+    contingency: null,
   },
   {
     id: 'complianceScope',
@@ -27,6 +29,7 @@ export const INITIAL_RISKS: Risk[] = [
     mitigationCost: 10000,
     mitigated: false,
     triggered: false,
+    contingency: null,
   },
   {
     id: 'thirdPartyDesign',
@@ -36,6 +39,7 @@ export const INITIAL_RISKS: Risk[] = [
     mitigationCost: 3000,
     mitigated: false,
     triggered: false,
+    contingency: null,
   },
   {
     id: 'infraCost',
@@ -45,5 +49,6 @@ export const INITIAL_RISKS: Risk[] = [
     mitigationCost: 2500,
     mitigated: false,
     triggered: false,
+    contingency: null,
   },
 ];

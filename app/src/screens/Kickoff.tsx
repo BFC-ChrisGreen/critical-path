@@ -4,7 +4,10 @@ import { Bar } from '../components/Bar';
 import { TRAIT_BLURB, TRAIT_LABEL } from '../data/candidates';
 import { PROJECT_TEMPLATES } from '../data/projects';
 import { weeklyPayroll } from '../engine/evm';
-import type { ImpactLevel } from '../types';
+import { CONTINGENCY_BLURB, CONTINGENCY_LABEL } from '../engine/contingency';
+import type { ContingencyStance, ImpactLevel } from '../types';
+
+const CONTINGENCY_OPTIONS: ContingencyStance[] = ['absorb', 'escalate', 'delegate'];
 
 const IMPACT_TONE: Record<ImpactLevel, 'good' | 'warn' | 'risk'> = {
   low: 'good',
@@ -24,6 +27,7 @@ export function Kickoff() {
   const chooseProject = useGameStore((s) => s.chooseProject);
   const setMilestoneWeek = useGameStore((s) => s.setMilestoneWeek);
   const toggleMitigate = useGameStore((s) => s.toggleMitigate);
+  const setContingency = useGameStore((s) => s.setContingency);
   const hireCandidate = useGameStore((s) => s.hireCandidate);
   const releaseCandidate = useGameStore((s) => s.releaseCandidate);
   const startProject = useGameStore((s) => s.startProject);
@@ -93,7 +97,7 @@ export function Kickoff() {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Risk</th><th>Odds over the project</th><th>Impact</th><th>Mitigation cost</th><th>Status</th></tr>
+              <tr><th>Risk</th><th>Odds over the project</th><th>Impact</th><th>Mitigation cost</th><th>Status</th><th>Contingency</th></tr>
             </thead>
             <tbody>
               {riskRegister.map((risk) => (
@@ -106,6 +110,19 @@ export function Kickoff() {
                     <button type="button" className="btn" onClick={() => toggleMitigate(risk.id)}>
                       {risk.mitigated ? 'Mitigated ✓' : 'Mitigate'}
                     </button>
+                  </td>
+                  <td>
+                    <select
+                      className="contingency-select"
+                      value={risk.contingency ?? ''}
+                      title={risk.contingency ? CONTINGENCY_BLURB[risk.contingency] : 'No contingency plan set'}
+                      onChange={(e) => setContingency(risk.id, (e.target.value || null) as ContingencyStance | null)}
+                    >
+                      <option value="">None</option>
+                      {CONTINGENCY_OPTIONS.map((stance) => (
+                        <option key={stance} value={stance}>{CONTINGENCY_LABEL[stance]}</option>
+                      ))}
+                    </select>
                   </td>
                 </tr>
               ))}
