@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameStore, loadSavedGame } from './store';
+import { Intro } from './screens/Intro';
+import { Personality } from './screens/Personality';
 import { CharacterCreation } from './screens/CharacterCreation';
 import { Kickoff } from './screens/Kickoff';
 import { Weekbeat } from './screens/Weekbeat';
@@ -32,6 +34,8 @@ function App() {
         )}
       </div>
 
+      {screen === 'intro' && <Intro />}
+      {screen === 'personality' && <Personality />}
       {screen === 'create' && <CharacterCreation />}
       {screen === 'kickoff' && <Kickoff />}
       {screen === 'weekbeat' && <Weekbeat />}

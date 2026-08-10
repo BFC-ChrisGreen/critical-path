@@ -258,6 +258,9 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .choice-btn:hover { border-color: var(--accent); }
 .choice-btn .clabel { font-weight: 700; font-size: 0.94rem; }
 .choice-btn .cdesc { font-size: 0.82rem; color: var(--text-dim); margin-top: 0.2rem; }
+.choice-btn.quiz-correct { border-color: var(--good); background: var(--good-soft); }
+.choice-btn.quiz-incorrect { border-color: var(--risk); background: var(--risk-soft); }
+.quiz-explain { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
 
 .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.8rem; margin-bottom: 1.2rem; }
 .score-tile { text-align: center; padding: 0.9rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }

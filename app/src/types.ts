@@ -51,7 +51,7 @@ export interface LogEntry {
   kind: 'event' | 'review' | 'system';
 }
 
-export type Screen = 'create' | 'kickoff' | 'weekbeat' | 'debrief';
+export type Screen = 'intro' | 'personality' | 'create' | 'kickoff' | 'weekbeat' | 'debrief';
 
 export interface Character {
   name: string;
@@ -84,6 +84,7 @@ export interface HistoryPoint {
 
 export interface GameState {
   screen: Screen;
+  personalityAllocation: Stats | null;
   character: Character | null;
   project: ProjectState;
   team: Candidate[];

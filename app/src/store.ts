@@ -32,7 +32,8 @@ function freshProject() {
 
 function initialState(): GameState {
   return {
-    screen: 'create',
+    screen: 'intro',
+    personalityAllocation: null,
     character: null,
     project: freshProject(),
     team: [],
@@ -48,6 +49,8 @@ function initialState(): GameState {
 }
 
 interface Store extends GameState {
+  completeIntro: () => void;
+  completePersonality: (allocation: Stats) => void;
   createCharacter: (name: string, background: Background, stats: Stats) => void;
   toggleMitigate: (riskId: string) => void;
   hireCandidate: (id: string) => void;
@@ -147,6 +150,16 @@ function finishWeekTail(
 
 export const useGameStore = create<Store>((set, get) => ({
   ...initialState(),
+
+  completeIntro: () => {
+    set({ screen: 'personality' });
+    get().persist();
+  },
+
+  completePersonality: (allocation) => {
+    set({ screen: 'create', personalityAllocation: allocation });
+    get().persist();
+  },
 
   createCharacter: (name, background, stats) => {
     set({ character: { name, background, stats }, screen: 'kickoff' });
@@ -283,11 +296,11 @@ export const useGameStore = create<Store>((set, get) => ({
   },
 
   persist: () => {
-    const { screen, character, project, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history } = get();
+    const { screen, personalityAllocation, character, project, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history } = get();
     try {
       localStorage.setItem(
         SAVE_KEY,
-        JSON.stringify({ screen, character, project, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history }),
+        JSON.stringify({ screen, personalityAllocation, character, project, team, candidatePool, riskRegister, stakeholders, morale, eventLog, pendingEvent, gameOver, history }),
       );
     } catch {
       // storage unavailable, skip silently

@@ -13,18 +13,23 @@ const STAT_ORDER: { key: StatKey; label: string }[] = [
   { key: 'organization', label: 'Organization' },
 ];
 
+const ZERO_ALLOCATION: Record<StatKey, number> = {
+  leadership: 0,
+  technical: 0,
+  communication: 0,
+  riskMgmt: 0,
+  negotiation: 0,
+  organization: 0,
+};
+
 export function CharacterCreation() {
   const createCharacter = useGameStore((s) => s.createCharacter);
+  const personalityAllocation = useGameStore((s) => s.personalityAllocation);
   const [name, setName] = useState('');
   const [background, setBackground] = useState<Background>('engineer');
-  const [allocated, setAllocated] = useState<Record<StatKey, number>>({
-    leadership: 0,
-    technical: 0,
-    communication: 0,
-    riskMgmt: 0,
-    negotiation: 0,
-    organization: 0,
-  });
+  const [allocated, setAllocated] = useState<Record<StatKey, number>>(
+    personalityAllocation ?? ZERO_ALLOCATION,
+  );
 
   const base = BACKGROUND_BASE_STATS[background];
   const spent = Object.values(allocated).reduce((a, b) => a + b, 0);
@@ -32,7 +37,7 @@ export function CharacterCreation() {
 
   function changeBackground(next: Background) {
     setBackground(next);
-    setAllocated({ leadership: 0, technical: 0, communication: 0, riskMgmt: 0, negotiation: 0, organization: 0 });
+    setAllocated(personalityAllocation ?? ZERO_ALLOCATION);
   }
 
   function bump(key: StatKey, delta: number) {
