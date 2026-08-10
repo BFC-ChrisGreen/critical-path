@@ -57,7 +57,7 @@ export function deriveSwot({ team, morale, project, riskRegister, stakeholders, 
     .filter((m) => m.targetWeek >= project.week && m.targetWeek - project.week <= 2)
     .sort((a, b) => a.targetWeek - b.targetWeek)[0];
   if (upcoming) {
-    opportunities.push(`${upcoming.label} lands in ${Math.max(0, upcoming.targetWeek - project.week)}w — a chance to show momentum`);
+    opportunities.push(`${upcoming.label} lands in ${Math.max(0, upcoming.targetWeek - project.week)}w, a chance to show momentum`);
   }
 
   for (const risk of riskRegister) {

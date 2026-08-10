@@ -39,7 +39,7 @@ export const TERM_QUESTIONS: TermQuestion[] = [
       { id: 'd', label: 'The order tasks were added to the backlog' },
     ],
     correctId: 'b',
-    explanation: "Any slip on the critical path slips the whole project — slack elsewhere doesn't save you.",
+    explanation: "Any slip on the critical path slips the whole project. Slack elsewhere doesn't save you.",
   },
   {
     id: 'kanban',
@@ -78,7 +78,7 @@ export const TERM_QUESTIONS: TermQuestion[] = [
       { id: 'd', label: "Anyone with an interest in the project's outcome, from sponsors to end users" },
     ],
     correctId: 'd',
-    explanation: 'Sponsors, users, delivery teams, even regulators — if the outcome affects them, they have a stake.',
+    explanation: 'Sponsors, users, delivery teams, even regulators: if the outcome affects them, they have a stake.',
   },
   {
     id: 'scopeCreep',
@@ -91,7 +91,7 @@ export const TERM_QUESTIONS: TermQuestion[] = [
       { id: 'd', label: 'A technique for prioritizing a backlog' },
     ],
     correctId: 'b',
-    explanation: "'Just one more small thing' adds up — scope creep is what happens when nobody re-negotiates the plan to match.",
+    explanation: "'Just one more small thing' adds up. Scope creep is what happens when nobody re-negotiates the plan to match.",
   },
 ];
 
@@ -132,7 +132,7 @@ export const PERSONALITY_QUESTIONS: PersonalityQuestion[] = [
     id: 'q-negotiation',
     prompt: 'Finance wants to cut 15% from your budget mid-project. You...',
     options: [
-      { id: 'a', label: 'Negotiate a scope trade — less budget for fewer features', deltas: { negotiation: 2 } },
+      { id: 'a', label: 'Negotiate a scope trade: less budget for fewer features', deltas: { negotiation: 2 } },
       { id: 'b', label: 'Appeal directly to the sponsor with the delivery risk', deltas: { leadership: 1, negotiation: 1 } },
       { id: 'c', label: 'Absorb it by asking the team to work leaner', deltas: { organization: 1, riskMgmt: 1 } },
       { id: 'd', label: 'Push back with a detailed cost breakdown', deltas: { technical: 1, negotiation: 1 } },
@@ -185,5 +185,5 @@ export const ROLE_BLURB: Record<StatKey, string> = {
   communication: 'You keep everyone in the loop before they have to ask. Silence makes you nervous.',
   riskMgmt: "You're already planning for what could go wrong, while everyone else is celebrating the plan.",
   negotiation: "You look for the trade before you look for the fight. Everything's negotiable to you.",
-  organization: 'You want the system visible — boards, sequences, dependencies. Chaos bothers you more than most.',
+  organization: 'You want the system visible: boards, sequences, dependencies. Chaos bothers you more than most.',
 };

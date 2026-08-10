@@ -39,13 +39,13 @@ export function Kickoff() {
 
   if (!projectId) {
     return (
-      <div className="stack" style={{ gap: '2rem' }}>
-        <div>
+      <div className="stack" style={{ gap: '1.6rem' }}>
+        <div className="page-head">
           <span className="eyebrow">Promotion</span>
-          <h1 style={{ fontSize: '2.1rem', margin: '0.5rem 0 0.4rem' }}>You've been made PM. Pick your project.</h1>
-          <p style={{ color: 'var(--text-dim)', maxWidth: '60ch' }}>
-            Three briefs landed on your desk. Whichever you take runs for its full duration — choose carefully,
-            there's no switching once you commit.
+          <h1>You've been made PM. Pick your project.</h1>
+          <p className="page-lede">
+            Three briefs landed on your desk. Whichever you take runs for its full duration, so choose carefully.
+            There's no switching once you commit.
           </p>
         </div>
         <div className="bg-options">
@@ -71,11 +71,11 @@ export function Kickoff() {
   }
 
   return (
-    <div className="stack" style={{ gap: '2rem' }}>
-      <div>
+    <div className="stack" style={{ gap: '1.6rem' }}>
+      <div className="page-head">
         <span className="eyebrow">Kickoff</span>
-        <h1 style={{ fontSize: '2rem', margin: '0.5rem 0 0.4rem' }}>{project.name}</h1>
-        <p style={{ color: 'var(--text-dim)', maxWidth: '64ch' }}>{project.brief}</p>
+        <h1>{project.name}</h1>
+        <p className="page-lede">{project.brief}</p>
       </div>
 
       <div className="stat-row">
@@ -209,9 +209,14 @@ export function Kickoff() {
         ))}
       </div>
 
-      <button type="button" className="btn btn-primary btn-block" onClick={startProject}>
-        Start the project
-      </button>
+      <div className="action-bar">
+        <div className="action-bar-inner">
+          <span className="action-bar-meta">{team.length} / {project.teamCap} hired &middot; {money(remainingBudget)} left</span>
+          <button type="button" className="btn btn-primary" onClick={startProject}>
+            Start the project
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

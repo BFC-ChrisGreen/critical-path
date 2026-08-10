@@ -59,11 +59,11 @@ export function CharacterCreation() {
   }
 
   return (
-    <div className="stack" style={{ gap: '2rem' }}>
-      <div>
+    <div className="stack" style={{ gap: '1.6rem' }}>
+      <div className="page-head">
         <span className="eyebrow">New career &middot; PM</span>
-        <h1 style={{ fontSize: '2.1rem', margin: '0.5rem 0 0.3rem' }}>Who are you?</h1>
-        <p style={{ color: 'var(--text-dim)', maxWidth: '60ch' }}>
+        <h1>Who are you?</h1>
+        <p className="page-lede">
           Every PM starts somewhere. Your background sets your natural strengths. The points are yours to
           spend on top of that.
         </p>
@@ -126,9 +126,14 @@ export function CharacterCreation() {
         })}
       </div>
 
-      <button type="button" className="btn btn-primary btn-block" onClick={handleStart}>
-        Take the job
-      </button>
+      <div className="action-bar">
+        <div className="action-bar-inner">
+          <span className="action-bar-meta">{remaining} points left</span>
+          <button type="button" className="btn btn-primary" onClick={handleStart}>
+            Take the job
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

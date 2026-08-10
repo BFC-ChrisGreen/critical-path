@@ -49,11 +49,11 @@ export function Personality() {
   if (done) {
     const topStat = STAT_ORDER.reduce((top, cur) => (allocation[cur.key] > allocation[top.key] ? cur : top)).key;
     return (
-      <div className="stack" style={{ gap: '2rem' }}>
-        <div>
+      <div className="stack" style={{ gap: '1.6rem' }}>
+        <div className="page-head">
           <span className="eyebrow">Results</span>
-          <h1 style={{ fontSize: '2.1rem', margin: '0.5rem 0 0.3rem' }}>{ROLE_LABEL[topStat]}</h1>
-          <p style={{ color: 'var(--text-dim)', maxWidth: '60ch' }}>{ROLE_BLURB[topStat]}</p>
+          <h1>{ROLE_LABEL[topStat]}</h1>
+          <p className="page-lede">{ROLE_BLURB[topStat]}</p>
         </div>
 
         <div className="panel stack">
@@ -66,27 +66,35 @@ export function Personality() {
             </div>
           ))}
           <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', margin: 0 }}>
-            These carry over as a starting boost — you'll still pick a background and can fine-tune from there.
+            These carry over as a starting boost. You'll still pick a background and can fine-tune from there.
           </p>
         </div>
 
-        <button type="button" className="btn btn-primary btn-block" onClick={() => completePersonality(allocation)}>
-          Continue
-        </button>
+        <div className="action-bar">
+          <div className="action-bar-inner">
+            <span className="action-bar-meta">Personality test complete</span>
+            <button type="button" className="btn btn-primary" onClick={() => completePersonality(allocation)}>
+              Continue
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="stack" style={{ gap: '2rem' }}>
-      <div>
+    <div className="stack" style={{ gap: '1.6rem' }}>
+      <div className="page-head">
         <span className="eyebrow">
           Personality test &middot; {index + 1} / {PERSONALITY_QUESTIONS.length}
         </span>
-        <h1 style={{ fontSize: '2.1rem', margin: '0.5rem 0 0.3rem' }}>How do you work?</h1>
-        <p style={{ color: 'var(--text-dim)', maxWidth: '60ch' }}>
-          There's no wrong answer here — this just shapes where you'll naturally lean once the project starts.
+        <h1>How do you work?</h1>
+        <p className="page-lede">
+          There's no wrong answer here. This just shapes where you'll naturally lean once the project starts.
         </p>
+        <div className="bar-track" style={{ marginTop: '0.8rem' }}>
+          <div className="bar-fill" style={{ width: `${((index + 1) / PERSONALITY_QUESTIONS.length) * 100}%` }} />
+        </div>
       </div>
 
       <div className="panel stack">

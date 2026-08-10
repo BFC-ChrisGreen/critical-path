@@ -13,15 +13,16 @@ export function Intro() {
   }
 
   const allCorrect = TERM_QUESTIONS.every((q) => correct[q.id]);
+  const correctCount = TERM_QUESTIONS.filter((q) => correct[q.id]).length;
 
   return (
-    <div className="stack" style={{ gap: '2rem' }}>
-      <div>
+    <div className="stack" style={{ gap: '1.6rem' }}>
+      <div className="page-head">
         <span className="eyebrow">Orientation</span>
-        <h1 style={{ fontSize: '2.1rem', margin: '0.5rem 0 0.3rem' }}>Before you take the job</h1>
-        <p style={{ color: 'var(--text-dim)', maxWidth: '60ch' }}>
-          Every PM career starts with the vocabulary. Get all six right to move on — pick an answer, and if
-          it's wrong you'll see why before trying again.
+        <h1>Before you take the job</h1>
+        <p className="page-lede">
+          Every PM career starts with the vocabulary. Get all six right to move on. Pick an answer, and if
+          it's wrong, you'll see why before trying again.
         </p>
       </div>
 
@@ -59,9 +60,14 @@ export function Intro() {
         );
       })}
 
-      <button type="button" className="btn btn-primary btn-block" disabled={!allCorrect} onClick={completeIntro}>
-        {allCorrect ? 'Continue' : `Get all ${TERM_QUESTIONS.length} right to continue`}
-      </button>
+      <div className="action-bar">
+        <div className="action-bar-inner">
+          <span className="action-bar-meta">{correctCount} / {TERM_QUESTIONS.length} correct</span>
+          <button type="button" className="btn btn-primary" disabled={!allCorrect} onClick={completeIntro}>
+            {allCorrect ? 'Continue' : 'Get them all right to continue'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

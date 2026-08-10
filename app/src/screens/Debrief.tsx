@@ -45,10 +45,10 @@ export function Debrief() {
 
   return (
     <div className="stack" style={{ gap: '1.6rem' }}>
-      <div>
+      <div className="page-head">
         <span className="eyebrow">Debrief</span>
-        <h1 style={{ fontSize: '2rem', margin: '0.5rem 0 0.3rem' }}>{copy.title}</h1>
-        <p style={{ color: 'var(--text-dim)' }}>{copy.body}</p>
+        <h1>{copy.title}</h1>
+        <p className="page-lede">{copy.body}</p>
       </div>
 
       <div className="scorecard">
@@ -72,9 +72,14 @@ export function Debrief() {
         )}
       </div>
 
-      <button type="button" className="btn btn-primary btn-block" onClick={resetGame}>
-        Start a new project
-      </button>
+      <div className="action-bar">
+        <div className="action-bar-inner">
+          <span className="action-bar-meta">{copy.title}</span>
+          <button type="button" className="btn btn-primary" onClick={resetGame}>
+            Start a new project
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

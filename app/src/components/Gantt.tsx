@@ -29,7 +29,7 @@ export function Gantt({ tasks, durationWeeks, currentWeek }: GanttProps) {
                 <div
                   className={`gantt-bar ${task.status} ${s.isCritical ? 'critical' : ''}`}
                   style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
-                  title={`${task.name}: week ${s.earlyStart.toFixed(1)}–${s.earlyFinish.toFixed(1)}${s.isCritical ? ' (critical path)' : ''}`}
+                  title={`${task.name}: week ${s.earlyStart.toFixed(1)} to ${s.earlyFinish.toFixed(1)}${s.isCritical ? ' (critical path)' : ''}`}
                 />
               </div>
             </div>
